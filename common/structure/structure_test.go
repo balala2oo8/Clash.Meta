@@ -288,3 +288,47 @@ func TestStructure_Null(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, s.Opt.Bar, "")
 }
+
+func TestStructure_Ignore(t *testing.T) {
+	rawMap := map[string]any{
+		"-": "newData",
+	}
+
+	s := struct {
+		MustIgnore string `test:"-"`
+	}{MustIgnore: "oldData"}
+
+	err := decoder.Decode(rawMap, &s)
+	assert.Nil(t, err)
+	assert.Equal(t, s.MustIgnore, "oldData")
+
+	// test omitempty
+	delete(rawMap, "-")
+	err = decoder.Decode(rawMap, &s)
+	assert.Nil(t, err)
+	assert.Equal(t, s.MustIgnore, "oldData")
+}
+
+func TestStructure_IgnoreInNest(t *testing.T) {
+	rawMap := map[string]any{
+		"-": "newData",
+	}
+
+	type TP struct {
+		MustIgnore string `test:"-"`
+	}
+
+	s := struct {
+		TP
+	}{TP{MustIgnore: "oldData"}}
+
+	err := decoder.Decode(rawMap, &s)
+	assert.Nil(t, err)
+	assert.Equal(t, s.MustIgnore, "oldData")
+
+	// test omitempty
+	delete(rawMap, "-")
+	err = decoder.Decode(rawMap, &s)
+	assert.Nil(t, err)
+	assert.Equal(t, s.MustIgnore, "oldData")
+}
